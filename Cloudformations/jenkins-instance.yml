@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create an Ubuntu 20.04 instance with Java 17 and Jenkins.'
+
+Parameters:
+  SecurityGroupId:
+    Type: String
+    Description: 'The security group ID'
+
+Resources:
+  Instance1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: 't2.medium'
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      KeyName: 'aws-sinem'
+      ImageId: 'ami-0e001c9271cf7f3b9' # Ubuntu 22.04 LTS AMI
+      BlockDeviceMappings:
+        - DeviceName: '/dev/sda1'
+          Ebs:
+            VolumeSize: 20
+      Tags:
+        - Key: 'Name'
+          Value: 'jenkins'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y openjdk-17-jdk
+          wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+          sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+          apt-get update
+          apt-get install -y jenkins
+
+Outputs:
+  Instance1Id:
+    Description: 'Instance1 ID'
+    Value: !Ref Instance1

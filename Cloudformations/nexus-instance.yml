@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create an Ubuntu 20.04 instance with Nexus.'
+
+Parameters:
+  SecurityGroupId:
+    Type: String
+    Description: 'The security group ID'
+
+Resources:
+  Instance3:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType:  't2.medium'
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      KeyName: 'aws-sinem'
+      ImageId: 'ami-0e001c9271cf7f3b9' # Ubuntu 22.04 LTS AMI
+      BlockDeviceMappings:
+        - DeviceName: '/dev/sda1'
+          Ebs:
+            VolumeSize: 20
+      Tags:
+        - Key: 'Name'
+          Value: 'nexus'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y openjdk-11-jdk
+          apt-get install -y wget
+          wget https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+          tar -zxvf latest-unix.tar.gz -C /opt
+          mv /opt/nexus-* /opt/nexus
+          adduser nexus
+          chown -R nexus:nexus /opt/nexus /opt/sonatype-work
+          echo 'run_as_user="nexus"' > /opt/nexus/bin/nexus.rc
+          /opt/nexus/bin/nexus start
+
+Outputs:
+  Instance3Id:
+    Description: 'Instance3 ID'
+    Value: !Ref Instance3

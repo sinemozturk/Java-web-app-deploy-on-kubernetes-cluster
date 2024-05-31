@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Master template to deploy IAM roles, security group, and instances.'
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t2.medium
+  KeyName:
+    Type: String
+    Default: your-key-name
+
+Resources:
+  IamRolesStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/your-bucket-name/iam-roles.yaml'
+
+  SecurityGroupStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/your-bucket-name/security-group.yaml'
+
+  Instance1Stack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/your-bucket-name/instance1.yaml'
+      Parameters:
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupId: !GetAtt SecurityGroupStack.Outputs.SecurityGroupId
+        EC2InstanceProfile: !GetAtt IamRolesStack.Outputs.EC2InstanceProfile
+
+  Instance2Stack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/your-bucket-name/instance2.yaml'
+      Parameters:
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupId: !GetAtt SecurityGroupStack.Outputs.SecurityGroupId
+        EC2InstanceProfile: !GetAtt IamRolesStack.Outputs.EC2InstanceProfile
+
+  Instance3Stack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/your-bucket-name/instance3.yaml'
+      Parameters:
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupId: !GetAtt SecurityGroupStack.Outputs.SecurityGroupId
+        EC2InstanceProfile: !GetAtt IamRolesStack.Outputs.EC2InstanceProfile
+
+Outputs:
+  SecurityGroupId:
+    Description: 'Security Group ID'
+    Value: !GetAtt SecurityGroupStack.Outputs.SecurityGroupId
+
+  Instance1Id:
+    Description: 'Instance1 ID'
+    Value: !GetAtt Instance1Stack.Outputs.Instance1Id
+
+  Instance2Id:
+    Description: 'Instance2 ID'
+    Value: !GetAtt Instance2Stack.Outputs.Instance2Id
+
+  Instance3Id:
+    Description: 'Instance3 ID'
+    Value: !GetAtt Instance3Stack.Outputs.Instance3Id

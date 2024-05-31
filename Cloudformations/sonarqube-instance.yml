@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create an Ubuntu 20.04 instance with SonarQube.'
+
+Parameters:
+  SecurityGroupId:
+    Type: String
+    Description: 'The security group ID'
+
+Resources:
+  Instance2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: 't2.medium'
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      KeyName: 'aws-sinem'
+      ImageId: 'ami-0e001c9271cf7f3b9' # Ubuntu 20.04 LTS AMI
+      BlockDeviceMappings:
+        - DeviceName: '/dev/sda1'
+          Ebs:
+            VolumeSize: 20
+      Tags:
+        - Key: 'Name'
+          Value: 'sonarqube'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y openjdk-11-jdk
+          apt-get install -y wget unzip
+          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.9.0.43852.zip
+          unzip sonarqube-8.9.0.43852.zip -d /opt
+          useradd -r -s /bin/false sonar
+          chown -R sonar:sonar /opt/sonarqube-8.9.0.43852
+          su - sonar -c "/opt/sonarqube-8.9.0.43852/bin/linux-x86-64/sonar.sh start"
+
+Outputs:
+  Instance2Id:
+    Description: 'Instance2 ID'
+    Value: !Ref Instance2

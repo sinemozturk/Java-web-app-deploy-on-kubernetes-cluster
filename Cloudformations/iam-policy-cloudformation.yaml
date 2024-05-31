@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM Roles for CloudFormation and EC2 instances.'
+
+Resources:
+  CloudFormationServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CloudFormationServicePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:*
+                  - s3:GetObject
+                  - cloudformation:DescribeStacks
+                  - cloudformation:CreateStack
+                  - cloudformation:UpdateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStackResources
+                  - cloudformation:ListStackResources
+                  - cloudformation:GetTemplate
+                  - iam:PassRole
+                Resource: '*'
+
+  EC2InstanceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EC2InstancePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                Resource: 
+                  - arn:aws:s3:::YOUR_BUCKET_NAME
+                  - arn:aws:s3:::YOUR_BUCKET_NAME/*
+
+Outputs:
+  CloudFormationServiceRoleArn:
+    Description: 'ARN of the CloudFormation Service Role'
+    Value: !GetAtt CloudFormationServiceRole.Arn
+
+  EC2InstanceRoleArn:
+    Description: 'ARN of the EC2 Instance Role'
+    Value: !GetAtt EC2InstanceRole.Arn
+
+  EC2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles: 
+        - !Ref EC2InstanceRole
